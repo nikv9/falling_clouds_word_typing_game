@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+* {
+  margin: 0;
+}
+
+body {
+  letter-spacing: 0.03rem;
+}
+
+@media (max-width: 800px) {
+  .controlsContainer {
+    flex-direction: column;
+  }
+
+  .fallingWordContainer {
+    height: 70vh;
+  }
+  .gameOverMsgContainer {
+    width: 90%;
+  }
+}
