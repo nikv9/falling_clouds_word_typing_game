@@ -1,9 +1,12 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Header = (props) => {
   return (
     <div className="flex justify-between items-center py-2 px-4 border-b border-gray-600">
-      <h1 className="tracking-wider">FALLING CLOUDS</h1>
+      <Link to="/" className="tracking-wider">
+        FALLING CLOUDS
+      </Link>
       <div className="flex justify-center items-center gap-7">
         <select
           value={props.level}
