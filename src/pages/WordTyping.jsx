@@ -17,40 +17,50 @@ const WordTyping = () => {
   const [lives, setLives] = useState(5);
   const [paused, setPaused] = useState(false);
   const [level, setLevel] = useState("easy");
+  const [timerOn, setTimerOn] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(60);
 
   const fallInterval = useRef(null);
   const inputRef = useRef(null);
-
   const [missedSAudio] = useSound(missedSfx);
 
   const getRandomWord = () => generate({ minLength: 3, maxLength: 15 });
+  const resetDefaults = () => {
+    setScore(0);
+    setLives(5);
+    setPosition(0);
+    setTimeLeft(60);
+    setInputVal("");
+    setCurrentWord(getRandomWord());
+  };
+  const focusInput = () => setTimeout(() => inputRef.current?.focus(), 0);
 
   const startGame = () => {
-    setScore(0);
-    setPosition(0);
+    resetDefaults();
     setGameOver(false);
     setStart(true);
     setPaused(false);
-    setLives(5);
-    setCurrentWord(getRandomWord());
-    setTimeout(() => inputRef.current.focus(), 0);
+    focusInput();
   };
 
-  const stopGame = () => {
+  const stopGame = (isManual = false) => {
     clearInterval(fallInterval.current);
     setStart(false);
     setCurrentWord("");
     setInputVal("");
     setPosition(0);
-    setGameOver(true);
+    setTimeLeft(60);
+    if (isManual) {
+      setLives(5);
+      setScore(0);
+    } else setGameOver(true);
   };
 
-  const wordType = (e) => {
-    const value = e.target.value;
+  const handleTyping = (e) => {
+    const value = e.target.value.trim();
     setInputVal(value);
-
-    if (value.trim() === currentWord) {
-      setScore((prev) => prev + 5);
+    if (value === currentWord) {
+      setScore((s) => s + 5);
       setCurrentWord(getRandomWord());
       setInputVal("");
       setPosition(0);
@@ -58,55 +68,70 @@ const WordTyping = () => {
   };
 
   const togglePause = () => {
-    setPaused((prev) => {
-      const newState = !prev;
-      if (prev && inputRef.current)
-        setTimeout(() => inputRef.current.focus(), 0);
+    setPaused((p) => {
+      const newState = !p;
+      if (p) focusInput();
       return newState;
     });
   };
 
-  const selectLevel = (e) => {
-    setLevel(e.target.value);
-    if (start) {
-      clearInterval(fallInterval.current);
-      startGame();
-      setInputVal("");
-    }
+  const toggleLevel = () => {
+    setLevel((prev) => (prev === "easy" ? "hard" : "easy"));
+    stopGame(true);
   };
 
+  const toggleTimer = () => {
+    setTimerOn((t) => !t);
+    stopGame(true);
+  };
+
+  // falling animation
   useEffect(() => {
     if (!start || paused) return;
-
     fallInterval.current = setInterval(
-      () => {
-        setPosition((prev) => prev + 1);
-      },
+      () => setPosition((p) => p + 1),
       level === "easy" ? 50 : 30
     );
-
     return () => clearInterval(fallInterval.current);
   }, [start, paused, level]);
 
+  // lose life when word hits bottom
   useEffect(() => {
-    // set the maximum falling position based on screen width
     const maxPos = window.innerWidth <= 800 ? 72 : 80;
+    if (position < maxPos) return;
 
-    if (position >= maxPos) {
-      setLives((prev) => {
-        const newLives = prev - 1;
+    if (!timerOn) {
+      setLives((l) => {
+        const newLives = l - 1;
         if (newLives <= 0) {
           stopGame();
           return 0;
         }
         return newLives;
       });
-      missedSAudio();
-      setCurrentWord(getRandomWord());
-      setInputVal("");
-      setPosition(0);
     }
-  }, [position]);
+
+    missedSAudio();
+    setCurrentWord(getRandomWord());
+    setInputVal("");
+    setPosition(0);
+  }, [position, timerOn]);
+
+  // countdown timer
+  useEffect(() => {
+    if (!start || !timerOn || paused) return;
+    const t = setInterval(() => {
+      setTimeLeft((time) => {
+        if (time <= 1) {
+          clearInterval(t);
+          stopGame();
+          return 0;
+        }
+        return time - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [start, timerOn, paused]);
 
   return (
     <div className="h-dvh text-white">
@@ -114,12 +139,15 @@ const WordTyping = () => {
         score={score}
         lives={lives}
         level={level}
-        onLevelChange={selectLevel}
+        onToggleLevel={toggleLevel}
+        timerOn={timerOn}
+        timeLeft={timeLeft}
+        onToggleTimer={toggleTimer}
       />
 
       {!start ? (
         <button
-          className="fixed bottom-4 right-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700 cursor-pointer"
+          className="fixed bottom-4 right-4 px-4 py-2 bg-green-600 rounded hover:bg-green-700"
           onClick={startGame}
         >
           Start Game
@@ -135,9 +163,9 @@ const WordTyping = () => {
             inputVal={inputVal}
             inputRef={inputRef}
             paused={paused}
-            onInputChange={wordType}
+            onInputChange={handleTyping}
             onRestart={startGame}
-            onStop={stopGame}
+            onStop={() => stopGame(true)}
             onTogglePause={togglePause}
           />
         </>
