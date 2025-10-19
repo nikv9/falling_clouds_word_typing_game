@@ -15,7 +15,7 @@ const Header = (props) => {
           className={`flex items-center gap-1 py-1 px-2 rounded cursor-pointer ${
             props.level === "hard"
               ? "bg-red-700 text-white"
-              : "bg-green-700 text-white"
+              : "bg-gray-700 text-white"
           }`}
         >
           {props.level === "hard" ? "Hard" : "Easy"}
