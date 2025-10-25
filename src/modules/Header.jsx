@@ -4,9 +4,12 @@ import { FiClock } from "react-icons/fi";
 
 const Header = (props) => {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center py-2 px-4 border-b border-gray-600 gap-2 md:gap-0">
-      <Link to="/" className="tracking-wider font-bold text-lg">
-        FALLING CLOUDS
+    <div className="flex flex-col md:flex-row justify-between items-center py-2 px-4 border-b border-gray-600 gap-2">
+      <Link
+        to="/"
+        className="tracking-wider font-semibold text-lg animate-pulse"
+      >
+        Falling Clouds
       </Link>
 
       <div className="flex items-center gap-4 flex-wrap">

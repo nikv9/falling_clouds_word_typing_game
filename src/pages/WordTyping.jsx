@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { generate } from "random-words";
-import useSound from "use-sound";
 import missedSfx from "../assets/awm.mp3";
 import Header from "../modules/Header";
 import FallingWord from "../modules/FallingWord";
@@ -22,7 +21,7 @@ const WordTyping = () => {
 
   const fallInterval = useRef(null);
   const inputRef = useRef(null);
-  const [missedSAudio] = useSound(missedSfx);
+  const missedAudio = useRef(null);
 
   const getRandomWord = () => generate({ minLength: 3, maxLength: 15 });
   const resetDefaults = () => {
@@ -111,7 +110,7 @@ const WordTyping = () => {
       });
     }
 
-    missedSAudio();
+    missedAudio.current?.play();
     setCurrentWord(getRandomWord());
     setInputVal("");
     setPosition(0);
@@ -172,6 +171,8 @@ const WordTyping = () => {
       )}
 
       {gameOver && <GameOverMsg score={score} />}
+
+      <audio ref={missedAudio} src={missedSfx} preload="auto"></audio>
     </div>
   );
 };
